@@ -112,6 +112,8 @@ Report response includes:
 
 Calculates the same compact summary from uploaded CSV files.
 
+`var_level` is fixed at `0.95` in Stage 2 so it matches the `var_95` and `cvar_95` response fields. Other values return HTTP 422.
+
 Example:
 
 ```bash
@@ -159,6 +161,10 @@ The API returns HTTP 400 with a readable `detail` message for:
 - non-numeric, missing, zero, or negative prices;
 - duplicated portfolio assets;
 - portfolio assets missing from the price history.
+
+Invalid request fields, missing multipart fields, and out-of-range `var_level` values return FastAPI's HTTP 422 validation response.
+
+Path-based endpoints are intended for local or trusted environments. A hosted service should use upload endpoints or restrict server-side paths explicitly.
 
 ## Future API Direction
 

@@ -15,3 +15,4 @@ Portfolio Risk API is a Stage 2 local MVP.
 - Upload provenance identifies supplied files, not an audited external data source.
 - No full margin, funding, tax, liquidity, or liquidation model is included.
 - Results depend on input data quality.
+- Position values are assumed to share one valuation currency; currency conversion is not modeled.

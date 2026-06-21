@@ -141,6 +141,47 @@ def test_upload_wrong_file_type_returns_clear_error():
     assert "must be a CSV" in response.json()["detail"]
 
 
+def test_upload_var_level_is_validated():
+    with (
+        open("data/sample_portfolio.csv", "rb") as portfolio_file,
+        open("data/sample_prices.csv", "rb") as prices_file,
+    ):
+        response = client.post(
+            "/risk/summary/upload?var_level=0.99",
+            files={
+                "portfolio_file": ("portfolio.csv", portfolio_file, "text/csv"),
+                "prices_file": ("prices.csv", prices_file, "text/csv"),
+            },
+        )
+
+    assert response.status_code == 422
+
+
+def test_path_based_var_level_is_fixed_at_95_percent():
+    response = client.post("/risk/summary", json={"var_level": 0.99})
+
+    assert response.status_code == 422
+
+
+def test_path_based_malformed_csv_returns_clear_error(tmp_path):
+    portfolio_path = tmp_path / "portfolio.csv"
+    portfolio_path.write_text(
+        'asset,quantity,price\nAAPL,"1,100\n',
+        encoding="utf-8",
+    )
+
+    response = client.post(
+        "/risk/summary",
+        json={
+            "portfolio_path": str(portfolio_path),
+            "prices_path": "data/sample_prices.csv",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Invalid portfolio CSV" in response.json()["detail"]
+
+
 def test_top_positions_sorted_by_weight():
     response = client.post("/risk/report", json={})
 
@@ -148,6 +189,15 @@ def test_top_positions_sorted_by_weight():
     top_positions = response.json()["top_positions"]
     weights = [item["weight"] for item in top_positions]
     assert weights == sorted(weights, reverse=True)
+
+
+def test_concentration_metrics_are_sane():
+    response = client.post("/risk/report", json={})
+
+    assert response.status_code == 200
+    concentration = response.json()["concentration"]
+    assert 0 < concentration["top_1_weight"] <= concentration["top_3_weight"] <= 1
+    assert concentration["effective_number_of_positions"] > 0
 
 
 def test_unknown_asset_error_is_clear(tmp_path):

@@ -4,7 +4,7 @@ Timestamp: 2026-06-21 18:18 MSK
 
 ## Status
 
-- Repo: `/Users/sergeylastochkin/Documents/Codex/2026-06-18/limit/portfolio-risk-api`
+- Repo: project root
 - Branch: `main`
 - Remote: none
 - Latest commit: `671dc46 Add upload support and scenario risk reports`

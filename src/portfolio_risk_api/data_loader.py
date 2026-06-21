@@ -132,6 +132,15 @@ def _read_uploaded_csv(content: bytes, filename: str) -> pd.DataFrame:
         raise DataValidationError(f"Invalid CSV upload: {filename}") from exc
 
 
+def _read_csv_path(path: Path, dataset_label: str) -> pd.DataFrame:
+    """Read a local CSV path and convert parser failures to validation errors."""
+
+    try:
+        return pd.read_csv(path)
+    except (OSError, UnicodeError, pd.errors.ParserError) as exc:
+        raise DataValidationError(f"Invalid {dataset_label} CSV: {path}") from exc
+
+
 def load_portfolio_csv(path: str | Path) -> pd.DataFrame:
     """Load and validate a portfolio CSV file."""
 
@@ -139,7 +148,7 @@ def load_portfolio_csv(path: str | Path) -> pd.DataFrame:
     if not resolved.exists():
         raise DataValidationError(f"Portfolio file not found: {resolved}")
 
-    return validate_portfolio_frame(pd.read_csv(resolved))
+    return validate_portfolio_frame(_read_csv_path(resolved, "portfolio"))
 
 
 def load_prices_csv(path: str | Path) -> pd.DataFrame:
@@ -149,7 +158,7 @@ def load_prices_csv(path: str | Path) -> pd.DataFrame:
     if not resolved.exists():
         raise DataValidationError(f"Prices file not found: {resolved}")
 
-    return validate_prices_frame(pd.read_csv(resolved))
+    return validate_prices_frame(_read_csv_path(resolved, "prices"))
 
 
 def validate_price_coverage(portfolio: pd.DataFrame, prices: pd.DataFrame) -> None:

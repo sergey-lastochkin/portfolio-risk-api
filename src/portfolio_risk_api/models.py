@@ -17,7 +17,12 @@ class RiskRequest(BaseModel):
         default="data/sample_prices.csv",
         description="Path to a price CSV file with date and one column per asset.",
     )
-    var_level: float = Field(default=0.95, ge=0.5, lt=1.0)
+    var_level: float = Field(
+        default=0.95,
+        ge=0.95,
+        le=0.95,
+        description="Fixed at 0.95 in Stage 2 to match the var_95 and cvar_95 response fields.",
+    )
 
 
 class HealthResponse(BaseModel):

@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 
 from portfolio_risk_api import __version__
 from portfolio_risk_api.data_loader import (
@@ -106,7 +106,7 @@ async def _uploaded_report(
 async def risk_summary_upload(
     portfolio_file: CsvUpload,
     prices_file: CsvUpload,
-    var_level: float = 0.95,
+    var_level: Annotated[float, Query(ge=0.95, le=0.95)] = 0.95,
 ) -> RiskSummaryResponse:
     """Return a compact risk summary from uploaded CSV files."""
 
@@ -118,7 +118,7 @@ async def risk_summary_upload(
 async def risk_report_upload(
     portfolio_file: CsvUpload,
     prices_file: CsvUpload,
-    var_level: float = 0.95,
+    var_level: Annotated[float, Query(ge=0.95, le=0.95)] = 0.95,
 ) -> RiskReportResponse:
     """Return a full risk report from uploaded CSV files."""
 

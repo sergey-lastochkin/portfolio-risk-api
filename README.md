@@ -2,7 +2,7 @@
 
 Portfolio Risk API is a reusable backend for portfolio risk calculations across markets. It is designed to work with simple portfolio and price datasets, starting from CSV inputs and a small FastAPI service.
 
-This is the second public project line after Russian Markets Lab.
+This is the second project in the portfolio after Russian Markets Lab.
 
 - Russian Markets Lab: market data, MOEX, research dashboard.
 - Portfolio Risk API: reusable risk backend across markets.
@@ -144,15 +144,16 @@ Compact example response:
     "BTC": 0.4676,
     "EURUSD": 0.3885
   },
-  "annualized_volatility": 0.067,
-  "max_drawdown": -0.012,
-  "var_95": 0.004,
-  "cvar_95": 0.006,
+  "annualized_volatility": 0.0987,
+  "max_drawdown": -0.006,
+  "var_95": 0.0052,
+  "cvar_95": 0.0057,
   "observations": 29
 }
 ```
 
 `var_95` and `cvar_95` are reported as positive loss numbers, not as return quantiles.
+The Stage 2 API fixes the confidence level at 95% so the calculation matches these response field names.
 
 The full report also includes:
 
@@ -176,7 +177,7 @@ Portfolio Risk API is part of a broader line of market research tools:
 - execution cost analysis;
 - reusable APIs and reports.
 
-MOEX was the first public case through Russian Markets Lab. This project moves the portfolio toward a market-agnostic risk backend while staying honest about the current Stage 2 local MVP scope.
+MOEX was the first public case through Russian Markets Lab. The input schema here is not tied to one exchange. The current implementation remains a Stage 2 local MVP built around CSV inputs and simplified historical risk methods.
 
 ## Limitations
 
@@ -187,6 +188,8 @@ MOEX was the first public case through Russian Markets Lab. This project moves t
 - No full margin, liquidity, tax, funding, or liquidation model is included.
 - No broker connection or order execution is included.
 - The API is not an investment advice or trading system.
+- Path-based endpoints are intended for local or trusted environments. External clients should use upload endpoints rather than arbitrary server file paths.
+- Position values are assumed to share one portfolio valuation currency. Currency conversion is not modeled.
 
 ## Status
 
@@ -198,5 +201,5 @@ Next work should focus on:
 
 - user-defined scenario definitions;
 - richer error response objects;
-- cleaner adapters for different market data sources.
+- cleaner adapters for different market data sources;
 - optional dashboard or hosted API demo later.

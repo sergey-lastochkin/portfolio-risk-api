@@ -5,7 +5,7 @@ Use this checklist before showing the project to someone or before a public push
 ## 1. Open Project
 
 ```bash
-cd /Users/sergeylastochkin/Documents/Codex/2026-06-18/limit/portfolio-risk-api
+cd portfolio-risk-api
 ```
 
 ## 2. Activate Virtual Environment

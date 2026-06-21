@@ -15,6 +15,8 @@ Asset weights are each asset value divided by total portfolio value.
 Limitations:
 
 - Prices are taken from the portfolio CSV, so stale input prices will create stale weights.
+- Position values are assumed to use one common portfolio valuation currency.
+- Currency conversion is not modeled.
 - Short positions and derivatives exposures are not modeled in Stage 2.
 
 ## Asset Classes
@@ -62,6 +64,14 @@ Limitations:
 
 Drawdown is calculated from the cumulative return curve. Max drawdown is the worst peak-to-trough loss in the sample.
 
+Sign convention:
+
+```text
+Max drawdown is reported as a non-positive decimal return.
+```
+
+For example, `-0.20` means a 20% peak-to-trough loss.
+
 Limitations:
 
 - Drawdown is path-dependent.
@@ -70,6 +80,8 @@ Limitations:
 ## VaR
 
 Historical VaR is calculated from the lower tail of historical portfolio returns.
+
+Stage 2 uses a fixed 95% confidence level, matching the `var_95` response field.
 
 Sign convention:
 
@@ -88,6 +100,8 @@ Limitations:
 ## CVaR
 
 Historical CVaR is the average loss in the tail beyond the VaR threshold.
+
+Stage 2 uses a fixed 95% confidence level, matching the `cvar_95` response field.
 
 Sign convention:
 
