@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.responses import RedirectResponse
 
 from portfolio_risk_api import __version__
 from portfolio_risk_api.config import path_endpoints_enabled
@@ -32,6 +33,13 @@ app = FastAPI(
 )
 
 CsvUpload = Annotated[UploadFile, File(...)]
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """Open the interactive API documentation from the service root."""
+
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", response_model=HealthResponse)
