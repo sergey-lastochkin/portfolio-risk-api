@@ -33,7 +33,7 @@ Reusable FastAPI backend for portfolio risk calculations from CSV data.
 
 Portfolio Risk API is a small backend service for calculating first-pass portfolio risk metrics from simple CSV inputs. It accepts a portfolio file and historical price file, validates the inputs, calculates weights and historical risk metrics, and returns JSON summaries or reports through FastAPI endpoints.
 
-The project is intentionally narrow at Stage 1. It focuses on clean data validation, transparent methodology, tests, and documented limitations. It does not provide investment advice, trading signals, broker connectivity, or live trading functionality.
+The project is intentionally narrow at Stage 2 local. It focuses on clean data validation, transparent methodology, tests, upload support, richer risk reports, and documented limitations. It does not provide investment advice, trading signals, broker connectivity, or live trading functionality.
 
 ## What To Show In A Pinned Repository
 
@@ -55,7 +55,7 @@ The project is intentionally narrow at Stage 1. It focuses on clean data validat
 - No full portfolio management system.
 - No live broker integration.
 - No prediction of future losses.
-- No claim that Stage 1 is a complete risk platform.
+- No claim that Stage 2 is a complete risk platform.
 
 ## Pre-Push Checklist
 
@@ -83,4 +83,4 @@ The project is intentionally narrow at Stage 1. It focuses on clean data validat
 - [ ] No unwanted files are visible.
 - [ ] Clone/install instructions work on a fresh checkout.
 - [ ] Pinned repository order is intentional.
-- [ ] Portfolio strategy text stays honest: this is Stage 1, not a full risk platform.
+- [ ] Portfolio strategy text stays honest: this is Stage 2 local, not a full risk platform.

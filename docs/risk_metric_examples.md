@@ -126,4 +126,4 @@ Shock = -10%
 Estimated PnL = -10,000
 ```
 
-Stage 1 uses simple uniform shocks. It is a diagnostic, not a full scenario engine.
+Stage 2 uses simple deterministic shocks. It is a diagnostic, not a full scenario engine.

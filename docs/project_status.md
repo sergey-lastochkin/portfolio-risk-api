@@ -2,9 +2,9 @@
 
 ## Current Stage
 
-Stage 1 MVP.
+Stage 2 local MVP.
 
-Portfolio Risk API is a small FastAPI backend for calculating portfolio risk metrics from CSV inputs.
+Portfolio Risk API is a small FastAPI backend for calculating portfolio risk metrics from CSV inputs. It supports path-based sample inputs and multipart CSV uploads.
 
 ## Implemented Endpoints
 
@@ -12,6 +12,8 @@ Portfolio Risk API is a small FastAPI backend for calculating portfolio risk met
 - `GET /metadata`
 - `POST /risk/summary`
 - `POST /risk/report`
+- `POST /risk/summary/upload`
+- `POST /risk/report/upload`
 
 ## Implemented Metrics
 
@@ -24,7 +26,12 @@ Portfolio Risk API is a small FastAPI backend for calculating portfolio risk met
 - Historical VaR as a positive loss number
 - Historical CVaR as a positive loss number
 - Correlation matrix
-- Simple stress tests
+- Deterministic stress scenarios
+- Concentration metrics
+- Top positions by weight
+- Largest notional contributors
+- Asset coverage metadata
+- Input provenance and data window metadata
 
 ## Validation and Error Handling
 
@@ -40,6 +47,9 @@ The API and loaders handle:
 - zero or negative prices;
 - insufficient price history;
 - portfolio assets missing from the price history.
+- empty uploads;
+- wrong uploaded file type;
+- duplicated portfolio assets.
 
 Validation errors are returned by the API as HTTP 400 responses with readable `detail` messages.
 
@@ -58,6 +68,10 @@ The test suite covers:
 - VaR/CVaR sign convention;
 - stress test output shape;
 - health, metadata, summary, and report endpoints.
+- upload summary and upload report endpoints;
+- optional asset class handling and inference;
+- scenario engine output;
+- concentration and top position report fields.
 
 ## Known Warning
 
@@ -67,14 +81,16 @@ The test suite currently shows a dependency-level FastAPI/Starlette warning:
 StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
 ```
 
-The warning does not affect Stage 1 behavior. It should be revisited when the FastAPI/Starlette test client ecosystem settles or when moving to a pinned production dependency set.
+The warning does not affect Stage 2 local behavior. It should be revisited when the FastAPI/Starlette test client ecosystem settles or when moving to a pinned production dependency set.
 
 ## Limitations
 
 - Included data is sample/synthetic.
 - Historical metrics are backward-looking.
 - VaR and CVaR do not predict future losses.
-- Stress tests are simplified uniform shocks.
+- Stress tests are deterministic simplified shocks.
+- Asset class inference is a simple fallback.
+- Upload provenance is filename-level metadata only.
 - No full broker margin model is included.
 - No liquidity liquidation model is included.
 - No broker connection or order execution is included.
@@ -82,4 +98,4 @@ The warning does not affect Stage 1 behavior. It should be revisited when the Fa
 
 ## Next Stage
 
-Stage 2 should focus on richer reports, stronger schema validation, user-defined scenario inputs, optional file upload, and cleaner adapters for different market data sources.
+Next stage should focus on user-defined scenario inputs, richer error response objects, cleaner adapters for different market data sources, and optional report export.

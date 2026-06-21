@@ -1,6 +1,6 @@
 # API Design
 
-Stage 1 exposes a small path-based CSV API.
+Stage 2 exposes a small CSV API with both path-based inputs and multipart file uploads.
 
 ## `GET /health`
 
@@ -80,7 +80,7 @@ VaR and CVaR are positive loss numbers.
 
 ## `POST /risk/report`
 
-Returns the fuller report, including the correlation matrix, notes, and limitations.
+Returns the fuller report, including correlation, concentration, top positions, stress scenarios, provenance, notes, and limitations.
 
 Example:
 
@@ -90,17 +90,76 @@ curl -X POST http://127.0.0.1:8000/risk/report \
   -d '{"portfolio_path":"data/sample_portfolio.csv","prices_path":"data/sample_prices.csv"}'
 ```
 
+Report response includes:
+
+- `portfolio_value`
+- `weights`
+- `annualized_volatility`
+- `max_drawdown`
+- `var_95`
+- `cvar_95`
+- `correlation_matrix`
+- `stress_tests`
+- `concentration`
+- `top_positions`
+- `largest_notional_contributors`
+- `coverage`
+- `provenance`
+- `notes`
+- `limitations`
+
+## `POST /risk/summary/upload`
+
+Calculates the same compact summary from uploaded CSV files.
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/summary/upload \
+  -F "portfolio_file=@data/sample_portfolio.csv" \
+  -F "prices_file=@data/sample_prices.csv"
+```
+
+## `POST /risk/report/upload`
+
+Calculates the fuller report from uploaded CSV files.
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/report/upload \
+  -F "portfolio_file=@data/sample_portfolio.csv" \
+  -F "prices_file=@data/sample_prices.csv"
+```
+
+## Portfolio CSV Schema
+
+Required columns:
+
+- `asset`
+- `quantity`
+- `price`
+
+Optional column:
+
+- `asset_class`
+
+If `asset_class` is missing, the API infers a coarse class from the asset name. For example, BTC is treated as crypto, EURUSD as FX, and AAPL as equity.
+
 ## Error Behavior
 
 The API returns HTTP 400 with a readable `detail` message for:
 
 - missing files;
+- empty uploads;
+- wrong uploaded file type;
 - invalid CSV schema;
 - missing required columns;
 - insufficient price history;
 - non-numeric, missing, zero, or negative prices;
+- duplicated portfolio assets;
 - portfolio assets missing from the price history.
 
 ## Future API Direction
 
-Later stages can add file upload, stronger schemas, richer scenario inputs, and report export.
+Later stages can add user-defined scenario inputs, richer error response objects, market data adapters, and report export.

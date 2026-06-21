@@ -8,7 +8,10 @@ class RiskRequest(BaseModel):
 
     portfolio_path: str = Field(
         default="data/sample_portfolio.csv",
-        description="Path to a portfolio CSV file with asset, quantity, and price columns.",
+        description=(
+            "Path to a portfolio CSV file with asset, quantity, price, "
+            "and optional asset_class columns."
+        ),
     )
     prices_path: str = Field(
         default="data/sample_prices.csv",
@@ -36,10 +39,61 @@ class MetadataResponse(BaseModel):
 class StressTestResult(BaseModel):
     """Stress test result item."""
 
-    scenario: str
-    shock: float
+    scenario_name: str
     portfolio_pnl: float
-    portfolio_pnl_pct: float
+    portfolio_pnl_pct: float | None
+    per_asset_impact: dict[str, float]
+
+
+class PositionItem(BaseModel):
+    """Position ranking item."""
+
+    asset: str
+    asset_class: str | None = None
+    weight: float | None
+    notional_value: float | None = None
+
+
+class NotionalContributor(BaseModel):
+    """Notional value contributor item."""
+
+    asset: str
+    notional_value: float | None
+    weight: float | None
+
+
+class ConcentrationMetrics(BaseModel):
+    """Portfolio concentration metrics."""
+
+    top_1_weight: float | None
+    top_3_weight: float | None
+    effective_number_of_positions: float | None
+
+
+class CoverageMetadata(BaseModel):
+    """Asset coverage metadata."""
+
+    assets_in_portfolio: int
+    assets_with_price_history: int
+    missing_assets: list[str]
+
+
+class DataWindow(BaseModel):
+    """Price data window metadata."""
+
+    start_date: str
+    end_date: str
+    observations: int
+
+
+class ProvenanceMetadata(BaseModel):
+    """Input provenance metadata."""
+
+    portfolio_source: str
+    prices_source: str
+    data_window: DataWindow
+    portfolio_columns: list[str]
+    price_assets: list[str]
 
 
 class RiskSummaryResponse(BaseModel):
@@ -60,4 +114,9 @@ class RiskReportResponse(RiskSummaryResponse):
     """Full risk report response."""
 
     correlation_matrix: dict[str, dict[str, float | None]]
+    concentration: ConcentrationMetrics
+    top_positions: list[PositionItem]
+    largest_notional_contributors: list[NotionalContributor]
+    coverage: CoverageMetadata
+    provenance: ProvenanceMetadata
     notes: list[str]

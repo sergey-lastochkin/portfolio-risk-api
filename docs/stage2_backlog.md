@@ -1,12 +1,12 @@
-# Stage 2 Backlog
+# Backlog After Stage 2
 
-These are planned improvements. They are not implemented in Stage 1.
+Stage 2 local added upload support, richer report fields, deterministic scenarios, and stronger validation. The items below remain planned improvements.
 
 ## Richer Risk Report
 
 Why it matters:
 
-More structured reports make the API easier to use in dashboards and client-facing documents.
+Stage 2 added a richer report structure. The next step is to make the report more configurable and easier to export.
 
 Rough complexity:
 
@@ -20,7 +20,7 @@ Do not call it a full risk system. It would still be a report layer over simplif
 
 Why it matters:
 
-Better schemas reduce silent data errors and make API behavior more predictable.
+Stage 2 added stronger response models. The next step is structured error response models and stricter request validation for optional parameters.
 
 Rough complexity:
 
@@ -34,7 +34,7 @@ Schema validation improves input quality, but it does not guarantee correct port
 
 Why it matters:
 
-Users should be able to upload files directly instead of passing local file paths.
+Implemented in Stage 2 for summary and report endpoints. The next step is better upload metadata and size/content safeguards.
 
 Rough complexity:
 
@@ -48,7 +48,7 @@ File upload is usability work, not a new risk methodology.
 
 Why it matters:
 
-User-defined shocks are more useful than hardcoded uniform shocks.
+Stage 2 added deterministic built-in shocks. User-defined shocks are more useful than hardcoded scenarios.
 
 Rough complexity:
 

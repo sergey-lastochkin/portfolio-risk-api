@@ -13,9 +13,25 @@ def test_load_sample_files():
     prices = load_prices_csv("data/sample_prices.csv")
     validate_price_coverage(portfolio, prices)
 
-    assert set(portfolio.columns) == {"asset", "quantity", "price"}
+    assert set(portfolio.columns) == {"asset", "quantity", "price", "asset_class"}
+    assert portfolio.set_index("asset").loc["BTC", "asset_class"] == "crypto"
     assert "AAPL" in prices.columns
     assert len(prices) > 10
+
+
+def test_asset_class_is_optional_and_inferred(tmp_path):
+    path = tmp_path / "portfolio.csv"
+    path.write_text(
+        "asset,quantity,price\nBTC,1,60000\nEURUSD,1000,1.1\nAAPL,2,100\n",
+        encoding="utf-8",
+    )
+
+    portfolio = load_portfolio_csv(path)
+    classes = portfolio.set_index("asset")["asset_class"].to_dict()
+
+    assert classes["BTC"] == "crypto"
+    assert classes["EURUSD"] == "fx"
+    assert classes["AAPL"] == "equity"
 
 
 def test_missing_portfolio_columns(tmp_path):
@@ -54,6 +70,14 @@ def test_zero_and_negative_prices_are_rejected(tmp_path):
 
     with pytest.raises(DataValidationError, match="non-positive prices"):
         load_prices_csv(path)
+
+
+def test_duplicated_portfolio_assets_are_rejected(tmp_path):
+    path = tmp_path / "portfolio.csv"
+    path.write_text("asset,quantity,price\nAAPL,1,100\nAAPL,2,101\n", encoding="utf-8")
+
+    with pytest.raises(DataValidationError, match="duplicated assets"):
+        load_portfolio_csv(path)
 
 
 def test_insufficient_price_history_is_rejected(tmp_path):

@@ -12,6 +12,7 @@ from portfolio_risk_api.risk_metrics import (
     portfolio_value,
     simple_stress_tests,
 )
+from portfolio_risk_api.scenarios import asset_class_map, run_stress_scenarios
 
 
 def test_weights_sum_to_one():
@@ -96,3 +97,40 @@ def test_stress_test_output_has_stable_keys():
 
     assert output
     assert set(output[0]) == {"scenario", "shock", "portfolio_pnl", "portfolio_pnl_pct"}
+
+
+def test_asset_class_map_uses_explicit_and_inferred_classes():
+    portfolio = pd.DataFrame(
+        {
+            "asset": ["AAPL", "BTC", "EURUSD"],
+            "quantity": [1.0, 1.0, 1.0],
+            "price": [100.0, 60000.0, 1.1],
+        }
+    )
+
+    classes = asset_class_map(portfolio)
+
+    assert classes == {"AAPL": "equity", "BTC": "crypto", "EURUSD": "fx"}
+
+
+def test_scenario_engine_returns_stable_keys_and_negative_pnl():
+    portfolio = pd.DataFrame(
+        {
+            "asset": ["AAPL", "BTC", "EURUSD"],
+            "quantity": [1.0, 0.1, 1000.0],
+            "price": [100.0, 60000.0, 1.1],
+            "asset_class": ["equity", "crypto", "fx"],
+        }
+    )
+
+    output = run_stress_scenarios(portfolio)
+    broad_down = next(item for item in output if item["scenario_name"] == "all_assets_down_10pct")
+
+    assert set(broad_down) == {
+        "scenario_name",
+        "portfolio_pnl",
+        "portfolio_pnl_pct",
+        "per_asset_impact",
+    }
+    assert broad_down["portfolio_pnl"] < 0
+    assert broad_down["portfolio_pnl_pct"] < 0

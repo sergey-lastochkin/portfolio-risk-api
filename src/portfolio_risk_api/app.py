@@ -1,9 +1,15 @@
 """FastAPI application for Portfolio Risk API."""
 
-from fastapi import FastAPI, HTTPException
+from typing import Annotated
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
 
 from portfolio_risk_api import __version__
-from portfolio_risk_api.data_loader import DataValidationError
+from portfolio_risk_api.data_loader import (
+    DataValidationError,
+    load_portfolio_upload,
+    load_prices_upload,
+)
 from portfolio_risk_api.models import (
     HealthResponse,
     MetadataResponse,
@@ -11,13 +17,20 @@ from portfolio_risk_api.models import (
     RiskRequest,
     RiskSummaryResponse,
 )
-from portfolio_risk_api.report import build_risk_report, build_risk_summary
+from portfolio_risk_api.report import (
+    build_risk_report,
+    build_risk_report_from_frames,
+    build_risk_summary,
+    build_risk_summary_from_report,
+)
 
 app = FastAPI(
     title="Portfolio Risk API",
     description="Reusable backend for portfolio risk calculations from CSV data.",
     version=__version__,
 )
+
+CsvUpload = Annotated[UploadFile, File(...)]
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -46,6 +59,8 @@ def metadata() -> MetadataResponse:
             "GET /metadata",
             "POST /risk/summary",
             "POST /risk/report",
+            "POST /risk/summary/upload",
+            "POST /risk/report/upload",
         ],
     )
 
@@ -64,6 +79,51 @@ def risk_summary(request: RiskRequest) -> RiskSummaryResponse:
         )
     except DataValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+async def _uploaded_report(
+    portfolio_file: UploadFile,
+    prices_file: UploadFile,
+    var_level: float,
+) -> dict:
+    try:
+        portfolio_content = await portfolio_file.read()
+        prices_content = await prices_file.read()
+        portfolio = load_portfolio_upload(portfolio_content, portfolio_file.filename)
+        prices = load_prices_upload(prices_content, prices_file.filename)
+        return build_risk_report_from_frames(
+            portfolio,
+            prices,
+            var_level,
+            portfolio_source=f"upload:{portfolio_file.filename or 'portfolio_file'}",
+            prices_source=f"upload:{prices_file.filename or 'prices_file'}",
+        )
+    except DataValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/risk/summary/upload", response_model=RiskSummaryResponse)
+async def risk_summary_upload(
+    portfolio_file: CsvUpload,
+    prices_file: CsvUpload,
+    var_level: float = 0.95,
+) -> RiskSummaryResponse:
+    """Return a compact risk summary from uploaded CSV files."""
+
+    report = await _uploaded_report(portfolio_file, prices_file, var_level)
+    return RiskSummaryResponse(**build_risk_summary_from_report(report))
+
+
+@app.post("/risk/report/upload", response_model=RiskReportResponse)
+async def risk_report_upload(
+    portfolio_file: CsvUpload,
+    prices_file: CsvUpload,
+    var_level: float = 0.95,
+) -> RiskReportResponse:
+    """Return a full risk report from uploaded CSV files."""
+
+    report = await _uploaded_report(portfolio_file, prices_file, var_level)
+    return RiskReportResponse(**report)
 
 
 @app.post("/risk/report", response_model=RiskReportResponse)

@@ -13,9 +13,10 @@ The project accepts a portfolio and historical price data, calculates first-pass
 
 - Loads portfolio CSV files.
 - Loads historical price CSV files.
+- Accepts path-based CSV inputs or multipart CSV uploads.
 - Calculates portfolio weights.
 - Builds portfolio returns.
-- Calculates volatility, drawdown, VaR, CVaR, correlation, and simple stress scenarios.
+- Calculates volatility, drawdown, VaR, CVaR, correlation, concentration, and stress scenarios.
 - Exposes a small FastAPI service for risk summaries and reports.
 
 ## What It Does Not Do
@@ -68,12 +69,14 @@ docker run --rm -p 8000:8000 portfolio-risk-api
 
 ## API Endpoints
 
-Implemented in Stage 1:
+Implemented:
 
 - `GET /health`
 - `GET /metadata`
 - `POST /risk/summary`
 - `POST /risk/report`
+- `POST /risk/summary/upload`
+- `POST /risk/report/upload`
 
 The risk endpoints accept JSON paths to CSV files:
 
@@ -114,6 +117,22 @@ curl -X POST http://127.0.0.1:8000/risk/report \
   -d '{"portfolio_path":"data/sample_portfolio.csv","prices_path":"data/sample_prices.csv"}'
 ```
 
+Risk summary from uploaded CSV files:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/summary/upload \
+  -F "portfolio_file=@data/sample_portfolio.csv" \
+  -F "prices_file=@data/sample_prices.csv"
+```
+
+Risk report from uploaded CSV files:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/report/upload \
+  -F "portfolio_file=@data/sample_portfolio.csv" \
+  -F "prices_file=@data/sample_prices.csv"
+```
+
 Compact example response:
 
 ```json
@@ -135,6 +154,18 @@ Compact example response:
 
 `var_95` and `cvar_95` are reported as positive loss numbers, not as return quantiles.
 
+The full report also includes:
+
+- correlation matrix;
+- deterministic stress scenarios;
+- concentration metrics;
+- top positions by weight;
+- largest notional contributors;
+- asset coverage;
+- input provenance and data window metadata.
+
+`asset_class` is optional in the portfolio CSV. If it is missing, the loader infers a coarse class from the asset name, for example BTC as crypto, EURUSD as FX, and AAPL as equity.
+
 ## Portfolio Strategy Context
 
 Portfolio Risk API is part of a broader line of market research tools:
@@ -145,28 +176,27 @@ Portfolio Risk API is part of a broader line of market research tools:
 - execution cost analysis;
 - reusable APIs and reports.
 
-MOEX was the first public case through Russian Markets Lab. This project moves the portfolio toward a market-agnostic risk backend while staying honest about the current Stage 1 scope.
+MOEX was the first public case through Russian Markets Lab. This project moves the portfolio toward a market-agnostic risk backend while staying honest about the current Stage 2 local MVP scope.
 
 ## Limitations
 
 - The included data is sample/synthetic.
 - Historical risk metrics are backward-looking.
 - VaR and CVaR do not predict future losses.
-- Stress tests are simplified uniform shocks.
+- Stress tests are simplified deterministic shocks.
 - No full margin, liquidity, tax, funding, or liquidation model is included.
 - No broker connection or order execution is included.
 - The API is not an investment advice or trading system.
 
 ## Status
 
-Stage 1: CSV risk API MVP.
+Stage 2 local: CSV risk API with upload support, richer report structure, and deterministic scenario diagnostics.
 
-## Stage 2 Roadmap
+## Stage 3 Roadmap
 
 Next work should focus on:
 
-- richer report structure;
-- stronger input validation;
 - user-defined scenario definitions;
-- optional file upload;
+- richer error response objects;
 - cleaner adapters for different market data sources.
+- optional dashboard or hosted API demo later.

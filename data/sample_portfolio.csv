@@ -1,5 +1,5 @@
-asset,quantity,price
-AAPL,10,190
-MSFT,5,420
-BTC,0.2,65000
-EURUSD,10000,1.08
+asset,quantity,price,asset_class
+AAPL,10,190,equity
+MSFT,5,420,equity
+BTC,0.2,65000,crypto
+EURUSD,10000,1.08,fx
