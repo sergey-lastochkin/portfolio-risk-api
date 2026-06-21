@@ -75,6 +75,14 @@ Render deployment instructions and smoke checks are documented in [`docs/deploym
 
 On Render, server-side path endpoints are disabled. Use the multipart upload endpoints from `/docs`. The hosted API is a demonstration and research tool. It does not provide investment advice and is not a trading system.
 
+Live API:
+
+- Base URL: https://portfolio-risk-api-eb40.onrender.com
+- Swagger UI: https://portfolio-risk-api-eb40.onrender.com/docs
+- Health: https://portfolio-risk-api-eb40.onrender.com/health
+
+The free Render instance can take up to about 50 seconds to wake after inactivity.
+
 ## API Endpoints
 
 Implemented:

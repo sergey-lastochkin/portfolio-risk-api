@@ -2,7 +2,11 @@
 
 ## Summary
 
-Ready for public GitHub after final owner review. The Stage 2 local MVP has a clear scope, documented methodology, stable CSV and upload endpoints, focused validation, tests, and a verified Docker workflow.
+Public repository and Render deployment verified. The Stage 2 MVP has a clear scope, documented methodology, stable CSV and upload endpoints, focused validation, tests, and a verified Docker workflow.
+
+Live API: https://portfolio-risk-api-eb40.onrender.com
+
+Verified on June 21, 2026: `/health`, `/metadata`, `/docs`, and the repository smoke script passed against the live service.
 
 ## What Works
 
@@ -36,8 +40,9 @@ Ready for public GitHub after final owner review. The Stage 2 local MVP has a cl
 - [x] No tracked secrets, API keys, credentials, or real client data were found.
 - [x] No alpha, profit, arbitrage, signal, or trading-system claims are made.
 - [x] Repository description and topics are selected.
-- [ ] Owner performs one final README and repository-file review.
-- [ ] Remote is created intentionally and visibility is confirmed before push.
+- [x] Owner performed the final README and repository-file review.
+- [x] Public remote and repository visibility were confirmed.
+- [x] Render Docker deployment is live and its public endpoints were verified.
 
 ## Suggested GitHub Repository Metadata
 
@@ -51,4 +56,4 @@ Topics:
 
 ## Final Recommendation
 
-The project is ready for public push after a final owner review. Keep the public description focused on a Stage 2 CSV risk API, and do not present the simplified historical metrics or deterministic scenarios as forecasts, trading recommendations, or production risk guarantees.
+The project is public and its Render deployment is verified. Keep the public description focused on a Stage 2 CSV risk API, and do not present the simplified historical metrics or deterministic scenarios as forecasts, trading recommendations, or production risk guarantees.

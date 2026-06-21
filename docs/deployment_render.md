@@ -4,6 +4,24 @@
 
 Portfolio Risk API can run on Render as a public Docker web service. The hosted service uses the same FastAPI application and sample data as the local project.
 
+The deployment was verified on June 21, 2026:
+
+- Service: `portfolio-risk-api`
+- URL: https://portfolio-risk-api-eb40.onrender.com
+- Plan: Free
+- Runtime: Docker
+- Branch: `main`
+- Health check: `/health`
+- User-configured environment variables: none
+
+Live verification results:
+
+- `GET /health`: `200`, `{"status":"ok"}`
+- `GET /metadata`: `200`, version `0.2.0`
+- `GET /docs`: `200`
+- `scripts/smoke_render.sh`: passed
+- Render runtime log: Uvicorn bound to `0.0.0.0:10000`; health checks returned `200`
+
 ## Requirements
 
 - Public GitHub repository: `sergey-lastochkin/portfolio-risk-api`
@@ -49,17 +67,17 @@ Do not replace `0.0.0.0` with `127.0.0.1` in the container.
 
 ## Smoke Tests
 
-Replace the placeholder with the URL assigned by Render:
+Use the deployed service URL:
 
 ```bash
-curl https://<render-service-url>/health
-curl https://<render-service-url>/metadata
+curl https://portfolio-risk-api-eb40.onrender.com/health
+curl https://portfolio-risk-api-eb40.onrender.com/metadata
 ```
 
 Or run:
 
 ```bash
-./scripts/smoke_render.sh https://your-service.onrender.com
+./scripts/smoke_render.sh https://portfolio-risk-api-eb40.onrender.com
 ```
 
 Expected health response:
