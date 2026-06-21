@@ -2,8 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from portfolio_risk_api import __version__
 from portfolio_risk_api.config import path_endpoints_enabled
@@ -25,21 +28,37 @@ from portfolio_risk_api.report import (
     build_risk_summary,
     build_risk_summary_from_report,
 )
+from portfolio_risk_api.web import STATIC_DIR, render_template, sample_data_path
 
 app = FastAPI(
     title="Portfolio Risk API",
     description="Reusable backend for portfolio risk calculations from CSV data.",
     version=__version__,
 )
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 CsvUpload = Annotated[UploadFile, File(...)]
 
 
-@app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    """Open the interactive API documentation from the service root."""
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    """Use a friendly HTML validation error for the public upload form."""
 
-    return RedirectResponse(url="/docs")
+    if request.url.path == "/demo/report":
+        return render_template(
+            request,
+            "error.html",
+            {"message": "Select both a portfolio CSV and a price history CSV."},
+            status_code=422,
+        )
+    return await request_validation_exception_handler(request, exc)
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def root(request: Request) -> HTMLResponse:
+    """Render the public project landing page."""
+
+    return render_template(request, "landing.html")
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -168,3 +187,82 @@ def risk_report(request: RiskRequest) -> RiskReportResponse:
         )
     except DataValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/demo", response_class=HTMLResponse, include_in_schema=False)
+def demo(request: Request) -> HTMLResponse:
+    """Render the CSV upload demo page."""
+
+    return render_template(request, "demo.html")
+
+
+def _sample_file_response(request: Request, filename: str) -> FileResponse | HTMLResponse:
+    path = sample_data_path(filename)
+    if not path.is_file():
+        return render_template(
+            request,
+            "error.html",
+            {"message": f"Sample file is unavailable: {filename}"},
+            status_code=404,
+        )
+    return FileResponse(path, media_type="text/csv", filename=filename)
+
+
+@app.get("/samples/portfolio.csv", response_model=None, include_in_schema=False)
+def sample_portfolio(request: Request) -> FileResponse | HTMLResponse:
+    """Download the synthetic sample portfolio CSV."""
+
+    return _sample_file_response(request, "sample_portfolio.csv")
+
+
+@app.get("/samples/prices.csv", response_model=None, include_in_schema=False)
+def sample_prices(request: Request) -> FileResponse | HTMLResponse:
+    """Download the synthetic sample price history CSV."""
+
+    return _sample_file_response(request, "sample_prices.csv")
+
+
+@app.get("/demo/sample-report", response_class=HTMLResponse, include_in_schema=False)
+def demo_sample_report(request: Request) -> HTMLResponse:
+    """Render a report using the repository's synthetic sample data."""
+
+    portfolio_path = sample_data_path("sample_portfolio.csv")
+    prices_path = sample_data_path("sample_prices.csv")
+    try:
+        report = build_risk_report(str(portfolio_path), str(prices_path))
+    except DataValidationError as exc:
+        return render_template(
+            request,
+            "error.html",
+            {"message": str(exc)},
+            status_code=500,
+        )
+    return render_template(
+        request,
+        "report.html",
+        {"report": report, "is_sample": True},
+    )
+
+
+@app.post("/demo/report", response_class=HTMLResponse, include_in_schema=False)
+async def demo_uploaded_report(
+    request: Request,
+    portfolio_file: CsvUpload,
+    prices_file: CsvUpload,
+) -> HTMLResponse:
+    """Render a report from uploaded CSV files without storing them."""
+
+    try:
+        report = await _uploaded_report(portfolio_file, prices_file, 0.95)
+    except HTTPException as exc:
+        return render_template(
+            request,
+            "error.html",
+            {"message": str(exc.detail)},
+            status_code=exc.status_code,
+        )
+    return render_template(
+        request,
+        "report.html",
+        {"report": report, "is_sample": False},
+    )

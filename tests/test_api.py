@@ -5,11 +5,112 @@ from portfolio_risk_api.app import app
 client = TestClient(app)
 
 
-def test_root_redirects_to_docs():
-    response = client.get("/", follow_redirects=False)
+def test_root_returns_public_landing_page():
+    response = client.get("/")
 
-    assert response.status_code == 307
-    assert response.headers["location"] == "/docs"
+    assert response.status_code == 200
+    assert "Portfolio Risk API" in response.text
+    assert "/demo/sample-report" in response.text
+
+
+def test_demo_page_contains_upload_form():
+    response = client.get("/demo")
+
+    assert response.status_code == 200
+    assert 'action="/demo/report"' in response.text
+    assert 'name="portfolio_file"' in response.text
+    assert 'name="prices_file"' in response.text
+
+
+def test_sample_portfolio_download_returns_csv():
+    response = client.get("/samples/portfolio.csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert response.text.startswith("asset,quantity,price")
+
+
+def test_sample_prices_download_returns_csv():
+    response = client.get("/samples/prices.csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert response.text.startswith("date,AAPL,MSFT,BTC,EURUSD")
+
+
+def test_sample_report_contains_core_sections():
+    response = client.get("/demo/sample-report")
+
+    assert response.status_code == 200
+    for label in ["Portfolio value", "VaR 95", "CVaR 95", "Stress scenarios"]:
+        assert label in response.text
+    assert "Sample data. Demonstration only." in response.text
+
+
+def test_demo_upload_report_works_with_sample_files():
+    with (
+        open("data/sample_portfolio.csv", "rb") as portfolio_file,
+        open("data/sample_prices.csv", "rb") as prices_file,
+    ):
+        response = client.post(
+            "/demo/report",
+            files={
+                "portfolio_file": ("portfolio.csv", portfolio_file, "text/csv"),
+                "prices_file": ("prices.csv", prices_file, "text/csv"),
+            },
+        )
+
+    assert response.status_code == 200
+    assert "Portfolio risk report" in response.text
+    assert "Uploaded files" in response.text
+
+
+def test_demo_malformed_upload_returns_friendly_error_without_traceback():
+    response = client.post(
+        "/demo/report",
+        files={
+            "portfolio_file": ("portfolio.csv", b"wrong,column\n1,2\n", "text/csv"),
+            "prices_file": ("prices.csv", b"date,AAPL\n2026-01-01,100\n", "text/csv"),
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Check the uploaded CSV files" in response.text
+    assert "Portfolio CSV missing columns" in response.text
+    assert "Traceback" not in response.text
+
+
+def test_demo_missing_upload_returns_friendly_html_error():
+    response = client.post(
+        "/demo/report",
+        files={
+            "portfolio_file": ("portfolio.csv", b"asset,quantity,price\nAAPL,1,100\n", "text/csv")
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Select both a portfolio CSV and a price history CSV." in response.text
+    assert response.headers["content-type"].startswith("text/html")
+
+
+def test_missing_sample_file_returns_human_readable_404(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "portfolio_risk_api.app.sample_data_path",
+        lambda filename: tmp_path / filename,
+    )
+
+    response = client.get("/samples/portfolio.csv")
+
+    assert response.status_code == 404
+    assert "Sample file is unavailable" in response.text
+    assert "Traceback" not in response.text
+
+
+def test_swagger_docs_remain_available():
+    response = client.get("/docs")
+
+    assert response.status_code == 200
+    assert "swagger-ui" in response.text.lower()
 
 
 def test_health_endpoint():

@@ -15,6 +15,7 @@ dependencies = [
     "numpy",
     "pydantic",
     "python-multipart",
+    "jinja2",
 ]
 
 [project.optional-dependencies]
@@ -27,6 +28,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+portfolio_risk_api = ["templates/*.html", "static/*.css"]
 
 [tool.black]
 line-length = 100

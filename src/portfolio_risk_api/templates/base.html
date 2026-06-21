@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A lightweight public demo for portfolio risk calculations from CSV data.">
+    <title>{% block title %}Portfolio Risk API{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">Portfolio Risk API</a>
+      <nav aria-label="Primary navigation">
+        <a href="/demo">CSV demo</a>
+        <a href="/docs">API docs</a>
+        <a href="{{ github_url }}">GitHub</a>
+      </nav>
+    </header>
+    <main class="container">{% block content %}{% endblock %}</main>
+    <footer class="site-footer">
+      Research tooling demo only. Not investment advice, a trading system, or trading signals.
+    </footer>
+  </body>
+</html>

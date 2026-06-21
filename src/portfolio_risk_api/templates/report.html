@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Risk report | Portfolio Risk API{% endblock %}
+{% block content %}
+  <section class="report-header">
+    <div>
+      <p class="eyebrow">{% if is_sample %}Synthetic sample{% else %}Uploaded files{% endif %}</p>
+      <h1>Portfolio risk report</h1>
+      <p class="lead compact">Historical diagnostics from the supplied portfolio and price window.</p>
+    </div>
+    <div class="actions report-actions">
+      <a class="button" href="/demo">Run another report</a>
+      <a class="button secondary" href="/docs">API docs</a>
+    </div>
+  </section>
+
+  {% if is_sample %}<aside class="sample-banner">Sample data. Demonstration only.</aside>{% endif %}
+
+  <section class="metric-grid" aria-label="Risk summary">
+    <article class="metric"><span>Portfolio value</span><strong>{{ report.portfolio_value|number }}</strong></article>
+    <article class="metric"><span>Annualized volatility</span><strong>{{ report.annualized_volatility|percent }}</strong></article>
+    <article class="metric"><span>Maximum drawdown</span><strong>{{ report.max_drawdown|percent }}</strong></article>
+    <article class="metric"><span>VaR 95</span><strong>{{ report.var_95|percent }}</strong></article>
+    <article class="metric"><span>CVaR 95</span><strong>{{ report.cvar_95|percent }}</strong></article>
+    <article class="metric"><span>Return observations</span><strong>{{ report.observations }}</strong></article>
+  </section>
+
+  <section class="report-section">
+    <div class="section-heading"><p class="eyebrow">Exposure</p><h2>Top positions</h2></div>
+    <div class="table-wrap"><table><thead><tr><th>Asset</th><th>Class</th><th>Weight</th><th>Notional value</th></tr></thead><tbody>
+      {% for position in report.top_positions %}<tr><td>{{ position.asset }}</td><td>{{ position.asset_class|label }}</td><td>{{ position.weight|percent }}</td><td>{{ position.notional_value|number }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="report-section">
+    <div class="section-heading"><p class="eyebrow">Diversification</p><h2>Concentration</h2></div>
+    <div class="metric-grid three">
+      <article class="metric"><span>Largest position</span><strong>{{ report.concentration.top_1_weight|percent }}</strong></article>
+      <article class="metric"><span>Top three positions</span><strong>{{ report.concentration.top_3_weight|percent }}</strong></article>
+      <article class="metric"><span>Effective positions</span><strong>{{ report.concentration.effective_number_of_positions|number }}</strong></article>
+    </div>
+  </section>
+
+  <section class="report-section">
+    <div class="section-heading"><p class="eyebrow">Fixed shocks</p><h2>Stress scenarios</h2></div>
+    <div class="table-wrap"><table><thead><tr><th>Scenario</th><th>Portfolio P&amp;L</th><th>Portfolio impact</th></tr></thead><tbody>
+      {% for scenario in report.stress_tests %}<tr><td>{{ scenario.scenario_name|label }}</td><td>{{ scenario.portfolio_pnl|number }}</td><td>{{ scenario.portfolio_pnl_pct|percent }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="report-section two-column detail-columns">
+    <article class="card"><h2>Notes</h2><ul>{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul></article>
+    <article class="card"><h2>Limitations</h2><ul>{% for item in report.limitations %}<li>{{ item }}</li>{% endfor %}</ul></article>
+  </section>
+
+  <section class="report-section card provenance">
+    <p class="eyebrow">Inputs</p><h2>Provenance</h2>
+    <dl>
+      <div><dt>Portfolio source</dt><dd>{{ report.provenance.portfolio_source }}</dd></div>
+      <div><dt>Price source</dt><dd>{{ report.provenance.prices_source }}</dd></div>
+      <div><dt>Window</dt><dd>{{ report.provenance.data_window.start_date }} to {{ report.provenance.data_window.end_date }}</dd></div>
+      <div><dt>Coverage</dt><dd>{{ report.coverage.assets_with_price_history }} of {{ report.coverage.assets_in_portfolio }} assets</dd></div>
+    </dl>
+  </section>
+{% endblock %}
