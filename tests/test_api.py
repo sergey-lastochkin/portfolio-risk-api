@@ -74,6 +74,18 @@ def test_old_summary_endpoint_still_works():
     assert response.json()["portfolio_value"] > 0
 
 
+def test_render_disables_server_path_endpoints_but_keeps_uploads(monkeypatch):
+    monkeypatch.setenv("RENDER", "true")
+
+    path_response = client.post("/risk/summary", json={})
+    metadata_response = client.get("/metadata")
+
+    assert path_response.status_code == 403
+    assert "upload" in path_response.json()["detail"]
+    assert "POST /risk/summary" not in metadata_response.json()["implemented_endpoints"]
+    assert "POST /risk/summary/upload" in metadata_response.json()["implemented_endpoints"]
+
+
 def test_upload_summary_endpoint_works():
     with (
         open("data/sample_portfolio.csv", "rb") as portfolio_file,

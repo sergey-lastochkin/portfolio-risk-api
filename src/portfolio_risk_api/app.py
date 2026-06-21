@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 
 from portfolio_risk_api import __version__
+from portfolio_risk_api.config import path_endpoints_enabled
 from portfolio_risk_api.data_loader import (
     DataValidationError,
     load_portfolio_upload,
@@ -44,31 +45,49 @@ def health() -> HealthResponse:
 def metadata() -> MetadataResponse:
     """Return project metadata and limitations."""
 
+    endpoints = [
+        "GET /health",
+        "GET /metadata",
+        "POST /risk/summary/upload",
+        "POST /risk/report/upload",
+    ]
+    limitations = [
+        "No investment advice.",
+        "No broker connection.",
+        "No live trading.",
+        "Sample data is synthetic.",
+    ]
+    if path_endpoints_enabled():
+        endpoints[2:2] = ["POST /risk/summary", "POST /risk/report"]
+    else:
+        limitations.append(
+            "Path-based endpoints are disabled on Render; use multipart upload endpoints."
+        )
     return MetadataResponse(
         name="Portfolio Risk API",
         version=__version__,
         positioning="Reusable backend for portfolio risk calculations across markets.",
-        limitations=[
-            "No investment advice.",
-            "No broker connection.",
-            "No live trading.",
-            "Sample data is synthetic.",
-        ],
-        implemented_endpoints=[
-            "GET /health",
-            "GET /metadata",
-            "POST /risk/summary",
-            "POST /risk/report",
-            "POST /risk/summary/upload",
-            "POST /risk/report/upload",
-        ],
+        limitations=limitations,
+        implemented_endpoints=endpoints,
     )
+
+
+def _require_path_endpoints() -> None:
+    if not path_endpoints_enabled():
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Path-based endpoints are disabled in this hosted deployment. "
+                "Use /risk/summary/upload or /risk/report/upload."
+            ),
+        )
 
 
 @app.post("/risk/summary", response_model=RiskSummaryResponse)
 def risk_summary(request: RiskRequest) -> RiskSummaryResponse:
     """Return a compact risk summary."""
 
+    _require_path_endpoints()
     try:
         return RiskSummaryResponse(
             **build_risk_summary(
@@ -130,6 +149,7 @@ async def risk_report_upload(
 def risk_report(request: RiskRequest) -> RiskReportResponse:
     """Return a full risk report."""
 
+    _require_path_endpoints()
     try:
         return RiskReportResponse(
             **build_risk_report(

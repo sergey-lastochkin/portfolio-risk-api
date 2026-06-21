@@ -67,6 +67,14 @@ docker build -t portfolio-risk-api .
 docker run --rm -p 8000:8000 portfolio-risk-api
 ```
 
+## Deployment
+
+Local Docker remains supported and defaults to port `8000`. The container also reads Render's `PORT` environment variable and binds Uvicorn to `0.0.0.0`.
+
+Render deployment instructions and smoke checks are documented in [`docs/deployment_render.md`](docs/deployment_render.md).
+
+On Render, server-side path endpoints are disabled. Use the multipart upload endpoints from `/docs`. The hosted API is a demonstration and research tool. It does not provide investment advice and is not a trading system.
+
 ## API Endpoints
 
 Implemented:
