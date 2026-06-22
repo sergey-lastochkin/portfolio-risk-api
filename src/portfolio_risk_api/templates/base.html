@@ -1,24 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A lightweight public demo for portfolio risk calculations from CSV data.">
+    <meta name="description" content="{{ ui.meta_description }}">
     <title>{% block title %}Portfolio Risk API{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/">Portfolio Risk API</a>
-      <nav aria-label="Primary navigation">
-        <a href="/demo">CSV demo</a>
-        <a href="/docs">API docs</a>
-        <a href="{{ github_url }}">GitHub</a>
-      </nav>
+      <a class="brand" href="/?lang={{ lang }}">
+        <span>Portfolio Risk API</span>
+        <small>RISK BACKEND</small>
+      </a>
+      <div class="header-controls">
+        <nav aria-label="Navigation">
+          <a href="/?lang={{ lang }}">{{ ui.nav.overview }}</a>
+          <a href="/demo?lang={{ lang }}">{{ ui.nav.upload }}</a>
+          <a href="/docs">{{ ui.nav.api }}</a>
+          <a href="{{ github_url }}">GitHub</a>
+        </nav>
+        <div class="language-control" aria-label="Language">
+          <span class="language-code {% if lang == 'en' %}active{% endif %}">EN</span>
+          <label class="language-switch" for="language-toggle">
+            <input id="language-toggle" type="checkbox" {% if lang == 'ru' %}checked{% endif %}>
+            <span class="language-slider"></span>
+          </label>
+          <span class="language-code {% if lang == 'ru' %}active{% endif %}">RU</span>
+        </div>
+      </div>
     </header>
     <main class="container">{% block content %}{% endblock %}</main>
     <footer class="site-footer">
-      Research tooling demo only. Not investment advice, a trading system, or trading signals.
+      <span>Portfolio Risk API · Sergey Goncharov</span>
+      <span>{{ ui.footer }}</span>
     </footer>
+    <script>
+      document.getElementById("language-toggle").addEventListener("change", function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", this.checked ? "ru" : "en");
+        window.location.assign(url.toString());
+      });
+    </script>
   </body>
 </html>

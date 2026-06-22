@@ -9,15 +9,25 @@ def test_root_returns_public_landing_page():
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Portfolio Risk API" in response.text
-    assert "/demo/sample-report" in response.text
+    assert "Portfolio risk" in response.text
+    assert "Synthetic sample" in response.text
+    assert 'lang="en"' in response.text
+
+
+def test_russian_query_renders_russian_ui_and_checked_switch():
+    response = client.get("/?lang=ru")
+
+    assert response.status_code == 200
+    assert "Риск портфеля" in response.text
+    assert "Синтетический пример" in response.text
+    assert 'id="language-toggle" type="checkbox" checked' in response.text
 
 
 def test_demo_page_contains_upload_form():
     response = client.get("/demo")
 
     assert response.status_code == 200
-    assert 'action="/demo/report"' in response.text
+    assert 'action="/demo/report?lang=en"' in response.text
     assert 'name="portfolio_file"' in response.text
     assert 'name="prices_file"' in response.text
 
@@ -42,9 +52,9 @@ def test_sample_report_contains_core_sections():
     response = client.get("/demo/sample-report")
 
     assert response.status_code == 200
-    for label in ["Portfolio value", "VaR 95", "CVaR 95", "Stress scenarios"]:
+    for label in ["Portfolio value", "VaR 95%", "CVaR 95%", "Stress scenarios"]:
         assert label in response.text
-    assert "Sample data. Demonstration only." in response.text
+    assert "Demonstration data." in response.text
 
 
 def test_demo_upload_report_works_with_sample_files():
@@ -53,7 +63,7 @@ def test_demo_upload_report_works_with_sample_files():
         open("data/sample_prices.csv", "rb") as prices_file,
     ):
         response = client.post(
-            "/demo/report",
+            "/demo/report?lang=en",
             files={
                 "portfolio_file": ("portfolio.csv", portfolio_file, "text/csv"),
                 "prices_file": ("prices.csv", prices_file, "text/csv"),
@@ -61,13 +71,13 @@ def test_demo_upload_report_works_with_sample_files():
         )
 
     assert response.status_code == 200
-    assert "Portfolio risk report" in response.text
-    assert "Uploaded files" in response.text
+    assert "Portfolio risk" in response.text
+    assert "Uploaded CSVs" in response.text
 
 
 def test_demo_malformed_upload_returns_friendly_error_without_traceback():
     response = client.post(
-        "/demo/report",
+        "/demo/report?lang=ru",
         files={
             "portfolio_file": ("portfolio.csv", b"wrong,column\n1,2\n", "text/csv"),
             "prices_file": ("prices.csv", b"date,AAPL\n2026-01-01,100\n", "text/csv"),
@@ -75,21 +85,21 @@ def test_demo_malformed_upload_returns_friendly_error_without_traceback():
     )
 
     assert response.status_code == 400
-    assert "Check the uploaded CSV files" in response.text
-    assert "Portfolio CSV missing columns" in response.text
+    assert "Проверьте загруженные CSV" in response.text
+    assert "В CSV портфеля отсутствуют колонки" in response.text
     assert "Traceback" not in response.text
 
 
 def test_demo_missing_upload_returns_friendly_html_error():
     response = client.post(
-        "/demo/report",
+        "/demo/report?lang=ru",
         files={
             "portfolio_file": ("portfolio.csv", b"asset,quantity,price\nAAPL,1,100\n", "text/csv")
         },
     )
 
     assert response.status_code == 422
-    assert "Select both a portfolio CSV and a price history CSV." in response.text
+    assert "Выберите CSV портфеля и CSV с историей цен." in response.text
     assert response.headers["content-type"].startswith("text/html")
 
 
@@ -99,10 +109,10 @@ def test_missing_sample_file_returns_human_readable_404(monkeypatch, tmp_path):
         lambda filename: tmp_path / filename,
     )
 
-    response = client.get("/samples/portfolio.csv")
+    response = client.get("/samples/portfolio.csv?lang=ru")
 
     assert response.status_code == 404
-    assert "Sample file is unavailable" in response.text
+    assert "Файл примера недоступен" in response.text
     assert "Traceback" not in response.text
 
 

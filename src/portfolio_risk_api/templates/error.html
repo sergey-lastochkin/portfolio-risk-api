@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Input error | Portfolio Risk API{% endblock %}
+{% block title %}{{ ui.error.title }} | Portfolio Risk API{% endblock %}
 {% block content %}
   <section class="error-panel">
-    <p class="eyebrow">Unable to build report</p>
-    <h1>Check the uploaded CSV files</h1>
+    <p class="eyebrow">{{ ui.error.eyebrow }}</p>
+    <h1>{{ ui.error.title }}</h1>
     <p>{{ message }}</p>
-    <p class="field-note">The portfolio needs asset, quantity, and price columns. Price history needs a date column and one column for each portfolio asset.</p>
-    <div class="actions"><a class="button primary" href="/demo">Return to upload</a><a class="button" href="/demo/sample-report">Open sample report</a></div>
+    <p class="field-note">{{ ui.error.schema }}</p>
+    <div class="actions">
+      <a class="button primary" href="/demo?lang={{ lang }}">{{ ui.error.back }}</a>
+      <a class="button" href="/demo/sample-report?lang={{ lang }}">{{ ui.error.sample }}</a>
+    </div>
   </section>
 {% endblock %}

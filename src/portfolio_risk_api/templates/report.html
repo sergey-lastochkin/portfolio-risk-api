@@ -1,64 +1,92 @@
 {% extends "base.html" %}
-{% block title %}Risk report | Portfolio Risk API{% endblock %}
+{% block title %}{{ ui.report.title }} | Portfolio Risk API{% endblock %}
 {% block content %}
-  <section class="report-header">
+  <section class="report-header terminal-hero">
     <div>
-      <p class="eyebrow">{% if is_sample %}Synthetic sample{% else %}Uploaded files{% endif %}</p>
-      <h1>Portfolio risk report</h1>
-      <p class="lead compact">Historical diagnostics from the supplied portfolio and price window.</p>
+      <div class="hero-line">
+        <h1>{{ ui.report.title }}</h1>
+        <span class="status-badge">{{ ui.report.ready }}</span>
+      </div>
+      <p class="lead compact">{{ ui.report.subtitle }}</p>
     </div>
     <div class="actions report-actions">
-      <a class="button" href="/demo">Run another report</a>
-      <a class="button secondary" href="/docs">API docs</a>
+      <a class="button primary" href="/demo?lang={{ lang }}">{{ ui.report.upload }}</a>
+      <a class="button secondary" href="/docs">API</a>
     </div>
   </section>
 
-  {% if is_sample %}<aside class="sample-banner">Sample data. Demonstration only.</aside>{% endif %}
-
-  <section class="metric-grid" aria-label="Risk summary">
-    <article class="metric"><span>Portfolio value</span><strong>{{ report.portfolio_value|number }}</strong></article>
-    <article class="metric"><span>Annualized volatility</span><strong>{{ report.annualized_volatility|percent }}</strong></article>
-    <article class="metric"><span>Maximum drawdown</span><strong>{{ report.max_drawdown|percent }}</strong></article>
-    <article class="metric"><span>VaR 95</span><strong>{{ report.var_95|percent }}</strong></article>
-    <article class="metric"><span>CVaR 95</span><strong>{{ report.cvar_95|percent }}</strong></article>
-    <article class="metric"><span>Return observations</span><strong>{{ report.observations }}</strong></article>
+  <section class="status-strip" aria-label="Статус расчёта">
+    <div><span>{{ ui.report.data }}</span><strong>{% if is_sample %}{{ ui.report.sample }}{% else %}{{ ui.report.uploaded }}{% endif %}</strong></div>
+    <div><span>{{ ui.report.period }}</span><strong>{{ report.provenance.data_window.start_date|display_date }} – {{ report.provenance.data_window.end_date|display_date }}</strong></div>
+    <div><span>{{ ui.report.coverage }}</span><strong>{{ report.coverage.assets_with_price_history }} / {{ report.coverage.assets_in_portfolio }} {{ ui.report.assets }}</strong></div>
+    <div><span>{{ ui.report.method }}</span><strong>{{ ui.report.method_value }}</strong></div>
   </section>
 
-  <section class="report-section">
-    <div class="section-heading"><p class="eyebrow">Exposure</p><h2>Top positions</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Asset</th><th>Class</th><th>Weight</th><th>Notional value</th></tr></thead><tbody>
-      {% for position in report.top_positions %}<tr><td>{{ position.asset }}</td><td>{{ position.asset_class|label }}</td><td>{{ position.weight|percent }}</td><td>{{ position.notional_value|number }}</td></tr>{% endfor %}
-    </tbody></table></div>
+  {% if is_sample %}<aside class="sample-banner"><strong>{{ ui.report.sample_title }}</strong> {{ ui.report.sample_note }}</aside>{% endif %}
+
+  <section class="metric-grid" aria-label="Ключевые показатели риска">
+    <article class="metric"><span>{{ ui.report.portfolio_value }}</span><strong>{{ report.portfolio_value|number }}</strong><small>{{ ui.report.units }}</small></article>
+    <article class="metric"><span>{{ ui.report.volatility }}</span><strong>{{ report.annualized_volatility|percent }}</strong><small>{{ ui.report.daily_returns }}</small></article>
+    <article class="metric"><span>{{ ui.report.drawdown }}</span><strong class="negative">{{ report.max_drawdown|percent }}</strong><small>{{ ui.report.peak_to_trough }}</small></article>
+    <article class="metric"><span>{{ ui.report.var }}</span><strong>{{ report.var_95|percent }}</strong><small>{{ ui.report.var_note }}</small></article>
+    <article class="metric"><span>{{ ui.report.cvar }}</span><strong>{{ report.cvar_95|percent }}</strong><small>{{ ui.report.cvar_note }}</small></article>
+    <article class="metric"><span>{{ ui.report.observations }}</span><strong>{{ report.observations }}</strong><small>{{ ui.report.observations_note }}</small></article>
   </section>
 
+  <div class="dashboard-grid">
+    <section class="report-section panel span-2">
+      <div class="section-heading"><p class="eyebrow">{{ ui.report.structure }}</p><h2>{{ ui.report.positions }}</h2></div>
+      <div class="position-list">
+        {% for position in report.top_positions %}
+          <div class="position-row">
+            <div class="position-name"><strong>{{ position.asset }}</strong><span>{{ position.asset_class|display_label }}</span></div>
+            <div class="weight-track"><i style="width: {{ position.weight * 100 }}%"></i></div>
+            <strong class="position-weight">{{ position.weight|percent }}</strong>
+            <span class="position-value">{{ position.notional_value|number }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="report-section panel concentration-panel">
+      <div class="section-heading"><p class="eyebrow">{{ ui.report.concentration }}</p><h2>{{ ui.report.capital_distribution }}</h2></div>
+      <dl class="compact-metrics">
+        <div><dt>{{ ui.report.largest_position }}</dt><dd>{{ report.concentration.top_1_weight|percent }}</dd></div>
+        <div><dt>{{ ui.report.top_three }}</dt><dd>{{ report.concentration.top_3_weight|percent }}</dd></div>
+        <div><dt>{{ ui.report.effective_positions }}</dt><dd>{{ report.concentration.effective_number_of_positions|number }}</dd></div>
+      </dl>
+      <p class="panel-note">{{ ui.report.concentration_note }}</p>
+    </section>
+  </div>
+
   <section class="report-section">
-    <div class="section-heading"><p class="eyebrow">Diversification</p><h2>Concentration</h2></div>
-    <div class="metric-grid three">
-      <article class="metric"><span>Largest position</span><strong>{{ report.concentration.top_1_weight|percent }}</strong></article>
-      <article class="metric"><span>Top three positions</span><strong>{{ report.concentration.top_3_weight|percent }}</strong></article>
-      <article class="metric"><span>Effective positions</span><strong>{{ report.concentration.effective_number_of_positions|number }}</strong></article>
+    <div class="section-heading"><p class="eyebrow">{{ ui.report.scenario_analysis }}</p><h2>{{ ui.report.stress_scenarios }}</h2><p>{{ ui.report.stress_note }}</p></div>
+    <div class="stress-grid">
+      {% for scenario in report.stress_tests %}
+        <article class="stress-card">
+          <div class="stress-top"><strong>{{ scenario.scenario_name|display_label }}</strong><span>{{ scenario.portfolio_pnl_pct|percent }}</span></div>
+          <div class="stress-track"><i style="width: {{ scenario.portfolio_pnl_pct|stress_width }}%"></i></div>
+          <small>{{ ui.report.value_change }} {{ scenario.portfolio_pnl|number }}</small>
+        </article>
+      {% endfor %}
     </div>
   </section>
 
-  <section class="report-section">
-    <div class="section-heading"><p class="eyebrow">Fixed shocks</p><h2>Stress scenarios</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Scenario</th><th>Portfolio P&amp;L</th><th>Portfolio impact</th></tr></thead><tbody>
-      {% for scenario in report.stress_tests %}<tr><td>{{ scenario.scenario_name|label }}</td><td>{{ scenario.portfolio_pnl|number }}</td><td>{{ scenario.portfolio_pnl_pct|percent }}</td></tr>{% endfor %}
+  <section class="report-section panel">
+    <div class="section-heading"><p class="eyebrow">{{ ui.report.dependencies }}</p><h2>{{ ui.report.correlation }}</h2><p>{{ ui.report.correlation_note }}</p></div>
+    <div class="table-wrap correlation-table"><table><thead><tr><th>{{ ui.report.asset }}</th>{% for asset in report.correlation_matrix %}<th>{{ asset }}</th>{% endfor %}</tr></thead><tbody>
+      {% for asset, row in report.correlation_matrix.items() %}<tr><th>{{ asset }}</th>{% for column in report.correlation_matrix %}<td>{{ row[column]|number }}</td>{% endfor %}</tr>{% endfor %}
     </tbody></table></div>
   </section>
 
   <section class="report-section two-column detail-columns">
-    <article class="card"><h2>Notes</h2><ul>{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul></article>
-    <article class="card"><h2>Limitations</h2><ul>{% for item in report.limitations %}<li>{{ item }}</li>{% endfor %}</ul></article>
+    <article class="panel"><p class="eyebrow">{{ ui.report.how_to_read }}</p><h2>{{ ui.report.shows }}</h2><ul>{% for note in ui.report.notes %}<li>{{ note }}</li>{% endfor %}</ul></article>
+    <article class="panel"><p class="eyebrow warning">{{ ui.report.limitations_label }}</p><h2>{{ ui.report.outside_scope }}</h2><ul>{% for item in ui.report.limitations %}<li>{{ item }}</li>{% endfor %}</ul></article>
   </section>
 
-  <section class="report-section card provenance">
-    <p class="eyebrow">Inputs</p><h2>Provenance</h2>
-    <dl>
-      <div><dt>Portfolio source</dt><dd>{{ report.provenance.portfolio_source }}</dd></div>
-      <div><dt>Price source</dt><dd>{{ report.provenance.prices_source }}</dd></div>
-      <div><dt>Window</dt><dd>{{ report.provenance.data_window.start_date }} to {{ report.provenance.data_window.end_date }}</dd></div>
-      <div><dt>Coverage</dt><dd>{{ report.coverage.assets_with_price_history }} of {{ report.coverage.assets_in_portfolio }} assets</dd></div>
-    </dl>
+  <section class="report-section provenance-strip">
+    <div><span>{{ ui.report.portfolio }}</span><strong>{{ report.provenance.portfolio_source|source_label }}</strong></div>
+    <div><span>{{ ui.report.prices }}</span><strong>{{ report.provenance.prices_source|source_label }}</strong></div>
+    <div><span>{{ ui.report.price_rows }}</span><strong>{{ report.provenance.data_window.observations }}</strong></div>
   </section>
 {% endblock %}

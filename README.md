@@ -78,6 +78,7 @@ On Render, server-side path endpoints are disabled. Use the multipart upload end
 Live API:
 
 - Public demo: https://portfolio-risk-api-eb40.onrender.com
+- Russian demo: https://portfolio-risk-api-eb40.onrender.com/?lang=ru
 - CSV upload page: https://portfolio-risk-api-eb40.onrender.com/demo
 - Sample report: https://portfolio-risk-api-eb40.onrender.com/demo/sample-report
 - Swagger UI: https://portfolio-risk-api-eb40.onrender.com/docs
@@ -85,7 +86,7 @@ Live API:
 
 The free Render instance can take up to about 50 seconds to wake after inactivity.
 
-The web pages are a lightweight public demo over the same report functions used by the API. They allow visitors to inspect a synthetic sample report, download sample CSV files, or upload their own files without adding accounts, storage, or a trading workflow. The demo does not provide investment advice, a trading system, or trading signals.
+The web pages are a lightweight public demo over the same report functions used by the API. English is the default interface language, with Russian available through the EN/RU switch or `?lang=ru`. Visitors can inspect a synthetic sample report, download sample CSV files, or upload their own files without adding accounts, storage, or a trading workflow. The demo does not provide investment advice, a trading system, or trading signals.
 
 ## API Endpoints
 

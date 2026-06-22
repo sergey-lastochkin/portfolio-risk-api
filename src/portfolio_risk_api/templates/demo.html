@@ -1,40 +1,40 @@
 {% extends "base.html" %}
-{% block title %}CSV demo | Portfolio Risk API{% endblock %}
+{% block title %}{{ ui.nav.upload }} | Portfolio Risk API{% endblock %}
 {% block content %}
   <section class="page-intro">
-    <p class="eyebrow">Run a report</p>
-    <h1>Upload portfolio and price history CSVs</h1>
-    <p class="lead compact">Files are validated and processed for this request. The demo does not store uploads.</p>
+    <p class="eyebrow">{{ ui.upload.eyebrow }}</p>
+    <h1>{{ ui.upload.title }}</h1>
+    <p class="lead compact">{{ ui.upload.subtitle }}</p>
   </section>
 
   <div class="two-column">
     <section class="card upload-card">
-      <h2>Your files</h2>
-      <form action="/demo/report" method="post" enctype="multipart/form-data">
-        <label for="portfolio_file">Portfolio CSV</label>
+      <h2>{{ ui.upload.files }}</h2>
+      <form action="/demo/report?lang={{ lang }}" method="post" enctype="multipart/form-data">
+        <label for="portfolio_file">{{ ui.upload.portfolio }}</label>
         <input id="portfolio_file" name="portfolio_file" type="file" accept=".csv,text/csv" required>
-        <p class="field-note">Required columns: <code>asset</code>, <code>quantity</code>, <code>price</code>. Optional: <code>asset_class</code>.</p>
+        <p class="field-note">{{ ui.upload.portfolio_note }}</p>
 
-        <label for="prices_file">Price history CSV</label>
+        <label for="prices_file">{{ ui.upload.prices }}</label>
         <input id="prices_file" name="prices_file" type="file" accept=".csv,text/csv" required>
-        <p class="field-note">Required: <code>date</code> plus one positive numeric price column for every portfolio asset. At least three rows.</p>
+        <p class="field-note">{{ ui.upload.prices_note }}</p>
 
-        <button class="button primary" type="submit">Generate risk report</button>
+        <button class="button primary" type="submit">{{ ui.upload.submit }}</button>
       </form>
     </section>
 
     <aside class="card sample-card">
-      <p class="eyebrow">No files ready?</p>
-      <h2>Use the synthetic sample</h2>
-      <p>Open the ready report or download the exact CSV files used to generate it.</p>
+      <p class="eyebrow">{{ ui.upload.sample_eyebrow }}</p>
+      <h2>{{ ui.upload.sample_title }}</h2>
+      <p>{{ ui.upload.sample_text }}</p>
       <div class="stacked-actions">
-        <a class="button" href="/demo/sample-report">Run sample report</a>
-        <a href="/samples/portfolio.csv">Download portfolio CSV</a>
-        <a href="/samples/prices.csv">Download prices CSV</a>
-        <a href="/docs">Open technical API docs</a>
+        <a class="button" href="/demo/sample-report?lang={{ lang }}">{{ ui.upload.open_sample }}</a>
+        <a href="/samples/portfolio.csv?lang={{ lang }}">{{ ui.upload.download_portfolio }}</a>
+        <a href="/samples/prices.csv?lang={{ lang }}">{{ ui.upload.download_prices }}</a>
+        <a href="/docs">{{ ui.upload.api_docs }}</a>
       </div>
     </aside>
   </div>
 
-  <aside class="notice">Sample files are synthetic and provided only to demonstrate input structure and report output.</aside>
+  <aside class="notice"><strong>{% if lang == 'ru' %}Важно.{% else %}Important.{% endif %}</strong> {{ ui.upload.notice }}</aside>
 {% endblock %}

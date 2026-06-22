@@ -15,6 +15,7 @@ from portfolio_risk_api.data_loader import (
     load_portfolio_upload,
     load_prices_upload,
 )
+from portfolio_risk_api.localization import normalize_language, ui_text
 from portfolio_risk_api.models import (
     HealthResponse,
     MetadataResponse,
@@ -28,7 +29,12 @@ from portfolio_risk_api.report import (
     build_risk_summary,
     build_risk_summary_from_report,
 )
-from portfolio_risk_api.web import STATIC_DIR, render_template, sample_data_path
+from portfolio_risk_api.web import (
+    STATIC_DIR,
+    localize_validation_error,
+    render_template,
+    sample_data_path,
+)
 
 app = FastAPI(
     title="Portfolio Risk API",
@@ -40,15 +46,20 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 CsvUpload = Annotated[UploadFile, File(...)]
 
 
+def _request_language(request: Request) -> str:
+    return normalize_language(request.query_params.get("lang"))
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, exc: RequestValidationError):
     """Use a friendly HTML validation error for the public upload form."""
 
     if request.url.path == "/demo/report":
+        language = _request_language(request)
         return render_template(
             request,
             "error.html",
-            {"message": "Select both a portfolio CSV and a price history CSV."},
+            {"message": ui_text(language)["error"]["missing_files"]},
             status_code=422,
         )
     return await request_validation_exception_handler(request, exc)
@@ -56,9 +67,24 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def root(request: Request) -> HTMLResponse:
-    """Render the public project landing page."""
+    """Render the synthetic sample report as the public demo."""
 
-    return render_template(request, "landing.html")
+    portfolio_path = sample_data_path("sample_portfolio.csv")
+    prices_path = sample_data_path("sample_prices.csv")
+    try:
+        report = build_risk_report(str(portfolio_path), str(prices_path))
+    except DataValidationError as exc:
+        return render_template(
+            request,
+            "error.html",
+            {"message": localize_validation_error(str(exc), _request_language(request))},
+            status_code=500,
+        )
+    return render_template(
+        request,
+        "report.html",
+        {"report": report, "is_sample": True},
+    )
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -202,7 +228,12 @@ def _sample_file_response(request: Request, filename: str) -> FileResponse | HTM
         return render_template(
             request,
             "error.html",
-            {"message": f"Sample file is unavailable: {filename}"},
+            {
+                "message": (
+                    f"{ui_text(_request_language(request))['error']['sample_unavailable']}: "
+                    f"{filename}"
+                )
+            },
             status_code=404,
         )
     return FileResponse(path, media_type="text/csv", filename=filename)
@@ -234,7 +265,7 @@ def demo_sample_report(request: Request) -> HTMLResponse:
         return render_template(
             request,
             "error.html",
-            {"message": str(exc)},
+            {"message": localize_validation_error(str(exc), _request_language(request))},
             status_code=500,
         )
     return render_template(
@@ -258,7 +289,12 @@ async def demo_uploaded_report(
         return render_template(
             request,
             "error.html",
-            {"message": str(exc.detail)},
+            {
+                "message": localize_validation_error(
+                    str(exc.detail),
+                    _request_language(request),
+                )
+            },
             status_code=exc.status_code,
         )
     return render_template(
