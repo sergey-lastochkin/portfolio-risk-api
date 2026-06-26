@@ -113,6 +113,7 @@ Report response includes:
 Calculates the same compact summary from uploaded CSV files.
 
 `var_level` is fixed at `0.95` in Stage 2 so it matches the `var_95` and `cvar_95` response fields. Other values return HTTP 422.
+Each uploaded CSV is capped at 5 MB. Larger files return HTTP 413.
 
 Example:
 
@@ -125,6 +126,7 @@ curl -X POST http://127.0.0.1:8000/risk/summary/upload \
 ## `POST /risk/report/upload`
 
 Calculates the fuller report from uploaded CSV files.
+Each uploaded CSV is capped at 5 MB. Larger files return HTTP 413.
 
 Example:
 
@@ -153,6 +155,7 @@ If `asset_class` is missing, the API infers a coarse class from the asset name. 
 The API returns HTTP 400 with a readable `detail` message for:
 
 - missing files;
+- uploads larger than the 5 MB per-file limit;
 - empty uploads;
 - wrong uploaded file type;
 - invalid CSV schema;

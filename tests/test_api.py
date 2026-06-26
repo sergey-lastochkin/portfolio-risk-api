@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from portfolio_risk_api.app import app
+from portfolio_risk_api.config import MAX_UPLOAD_BYTES
 
 client = TestClient(app)
 
@@ -269,6 +270,21 @@ def test_upload_wrong_file_type_returns_clear_error():
 
     assert response.status_code == 400
     assert "must be a CSV" in response.json()["detail"]
+
+
+def test_upload_size_limit_returns_413():
+    oversized = b"asset,quantity,price\n" + (b"A" * (MAX_UPLOAD_BYTES + 1))
+    with open("data/sample_prices.csv", "rb") as prices_file:
+        response = client.post(
+            "/risk/summary/upload",
+            files={
+                "portfolio_file": ("portfolio.csv", oversized, "text/csv"),
+                "prices_file": ("prices.csv", prices_file, "text/csv"),
+            },
+        )
+
+    assert response.status_code == 413
+    assert "Portfolio CSV upload exceeds the 5 MB size limit" in response.json()["detail"]
 
 
 def test_upload_var_level_is_validated():

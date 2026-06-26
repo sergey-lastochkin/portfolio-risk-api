@@ -10,6 +10,7 @@ SAMPLE_PRICES_PATH = DATA_DIR / "sample_prices.csv"
 
 TRADING_DAYS_PER_YEAR = 252
 DEFAULT_VAR_LEVEL = 0.95
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 
 def path_endpoints_enabled() -> bool:

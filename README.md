@@ -160,6 +160,8 @@ curl -X POST http://127.0.0.1:8000/risk/report/upload \
   -F "prices_file=@data/sample_prices.csv"
 ```
 
+Uploaded CSV files are capped at 5 MB per file in the public API.
+
 Compact example response:
 
 ```json

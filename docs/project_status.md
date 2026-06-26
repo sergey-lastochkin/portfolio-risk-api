@@ -38,6 +38,7 @@ Portfolio Risk API is a small FastAPI backend for calculating portfolio risk met
 The API and loaders handle:
 
 - missing files;
+- uploads larger than the 5 MB per-file limit;
 - missing required portfolio columns;
 - missing required price columns;
 - invalid dates;

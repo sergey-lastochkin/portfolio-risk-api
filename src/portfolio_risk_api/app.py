@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from portfolio_risk_api import __version__
-from portfolio_risk_api.config import path_endpoints_enabled
+from portfolio_risk_api.config import MAX_UPLOAD_BYTES, path_endpoints_enabled
 from portfolio_risk_api.data_loader import (
     DataValidationError,
     load_portfolio_upload,
@@ -136,6 +136,17 @@ def _require_path_endpoints() -> None:
         )
 
 
+async def _read_upload_content(upload: UploadFile, label: str) -> bytes:
+    content = await upload.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        limit_mb = MAX_UPLOAD_BYTES // (1024 * 1024)
+        raise HTTPException(
+            status_code=413,
+            detail=f"{label} upload exceeds the {limit_mb} MB size limit.",
+        )
+    return content
+
+
 @app.post("/risk/summary", response_model=RiskSummaryResponse)
 def risk_summary(request: RiskRequest) -> RiskSummaryResponse:
     """Return a compact risk summary."""
@@ -159,8 +170,8 @@ async def _uploaded_report(
     var_level: float,
 ) -> dict:
     try:
-        portfolio_content = await portfolio_file.read()
-        prices_content = await prices_file.read()
+        portfolio_content = await _read_upload_content(portfolio_file, "Portfolio CSV")
+        prices_content = await _read_upload_content(prices_file, "Price history CSV")
         portfolio = load_portfolio_upload(portfolio_content, portfolio_file.filename)
         prices = load_prices_upload(prices_content, prices_file.filename)
         return build_risk_report_from_frames(
