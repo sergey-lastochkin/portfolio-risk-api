@@ -58,7 +58,10 @@ Full local checks:
 ```bash
 make test
 make lint
+python -m compileall -q src tests
 ```
+
+CI runs these checks against the repository's local sample data only. It does not request market data, connect to a broker, or perform trading actions.
 
 ## Docker
 
