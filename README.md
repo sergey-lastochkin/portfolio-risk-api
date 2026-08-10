@@ -1,5 +1,7 @@
 # Portfolio Risk API
 
+[![CI](https://github.com/sergey-lastochkin/portfolio-risk-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sergey-lastochkin/portfolio-risk-api/actions/workflows/ci.yml)
+
 Portfolio Risk API is a reusable backend for portfolio risk calculations across markets. It is designed to work with simple portfolio and price datasets, starting from CSV inputs and a small FastAPI service.
 
 This is the second project in the portfolio after Russian Markets Lab.
