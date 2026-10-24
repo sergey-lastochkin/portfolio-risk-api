@@ -2,30 +2,11 @@
 
 [![CI](https://github.com/sergey-lastochkin/portfolio-risk-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sergey-lastochkin/portfolio-risk-api/actions/workflows/ci.yml)
 
-**FastAPI-сервис риск-метрик портфеля: загрузите два CSV — позиции и цены — и
-получите волатильность, просадку, VaR/CVaR, корреляции, концентрацию и
-стресс-сценарии в JSON или HTML-отчёте.**
+Кидаете два CSV, позиции и цены, а получаете риск портфеля: волатильность, просадку, VaR и CVaR, корреляции, концентрацию и стресс-сценарии. В JSON или сразу HTML-отчётом.
 
-**Живое демо:** [portfolio-risk-api-eb40.onrender.com](https://portfolio-risk-api-eb40.onrender.com/?lang=ru) ·
-[загрузка CSV](https://portfolio-risk-api-eb40.onrender.com/demo) ·
-[пример отчёта](https://portfolio-risk-api-eb40.onrender.com/demo/sample-report) ·
-[Swagger](https://portfolio-risk-api-eb40.onrender.com/docs)
-<sub>(бесплатный хостинг: первый запрос после простоя будит сервис около 30–60 с)</sub>
+Можно потыкать вживую: [демо](https://portfolio-risk-api-eb40.onrender.com/?lang=ru), [загрузить свои CSV](https://portfolio-risk-api-eb40.onrender.com/demo), [готовый отчёт](https://portfolio-risk-api-eb40.onrender.com/demo/sample-report), [Swagger](https://portfolio-risk-api-eb40.onrender.com/docs). Хостинг бесплатный, поэтому после простоя первый запрос будит сервис секунд 30-60.
 
-## Какую проблему решает
-
-Риск портфеля часто считают в разрозненных ноутбуках и таблицах с разной
-методикой. Здесь одни и те же метрики доступны через API с зафиксированной
-методикой, валидацией входных файлов и описанием происхождения данных в каждом
-ответе — их можно подключить к дашборду, отчёту по расписанию или внутреннему
-инструменту.
-
-## Для кого
-
-- Аналитики и студенты, которым нужен готовый бэкенд риск-метрик.
-- Команды, которые встраивают расчёт риска в свои отчёты через HTTP.
-
-## Запуск за 2 минуты
+Сделал, потому что риск обычно считают кто во что горазд, в разных ноутбуках и табличках, и у каждого своя методика. А тут одни и те же метрики через API, методика зафиксирована, входные файлы проверяются, и в каждом ответе написано, на каких данных посчитано. Подключается к дашборду, отчёту по расписанию или внутреннему инструменту.
 
 ```bash
 git clone https://github.com/sergey-lastochkin/portfolio-risk-api.git
@@ -37,7 +18,7 @@ uvicorn portfolio_risk_api.app:app --reload     # http://127.0.0.1:8000/docs
 
 Или в Docker: `docker build -t portfolio-risk-api . && docker run --rm -p 8000:8000 portfolio-risk-api`.
 
-## Пример результата
+## Как выглядит ответ
 
 ```bash
 curl -X POST http://127.0.0.1:8000/risk/summary/upload \
@@ -58,37 +39,14 @@ curl -X POST http://127.0.0.1:8000/risk/summary/upload \
 }
 ```
 
-`var_95` и `cvar_95` — положительные числа потерь при уровне 95 %. Полный отчёт
-(`/risk/report`, `/risk/report/upload`) добавляет корреляционную матрицу,
-метрики концентрации, крупнейшие позиции, покрытие активов и метаданные окна
-данных. `asset_class` в CSV необязателен: BTC определяется как крипта, EURUSD —
-как валюта, AAPL — как акция.
+`var_95` и `cvar_95` - потери при уровне 95%, положительным числом. Полный отчёт (`/risk/report`, `/risk/report/upload`) добавляет корреляции, концентрацию, крупнейшие позиции, покрытие активов и окно данных. Колонку `asset_class` в CSV можно не заполнять: BTC сам поймёт как крипту, EURUSD как валюту, AAPL как акцию.
 
-Все эндпоинты — в Swagger (`/docs`); методика — [docs/methodology.md](docs/methodology.md),
-примеры метрик — [docs/risk_metric_examples.md](docs/risk_metric_examples.md),
-деплой на Render — [docs/deployment_render.md](docs/deployment_render.md).
+Методика - в [methodology.md](docs/methodology.md), примеры метрик - в [risk_metric_examples.md](docs/risk_metric_examples.md), как задеплоить на Render - в [deployment_render.md](docs/deployment_render.md).
 
-## Ограничения
+## О чём помнить
 
-- Данные в `data/` синтетические — это пример формата, а не исследование рынка.
-- Исторические метрики смотрят назад; VaR и CVaR не предсказывают будущие потери.
-- Стресс-тесты — упрощённые детерминированные шоки; моделей маржи, ликвидности,
-  налогов и конвертации валют нет (все позиции в одной валюте).
-- Эндпоинты с путями к файлам — только для локального запуска; на Render они
-  отключены, используйте загрузку (до 5 МБ на файл).
-- Не инвестиционная рекомендация и не торговая система: нет подключения к брокеру
-  и отправки заявок.
+Данные в `data/` выдуманные, это пример формата. Метрики смотрят назад, VaR и CVaR будущие потери не предсказывают. Стресс-тесты простые, фиксированные шоки, без маржи, ликвидности, налогов и пересчёта валют, все позиции в одной валюте. Эндпоинты с путями к файлам работают только локально, на Render они выключены, там загружайте файлы, до 5 МБ каждый. И это не инвестсовет и не торговая система, к брокеру ничего не подключено.
 
-## Разработка
+Для разработки: `make test && make lint` и `python -m compileall -q src tests`, CI гоняет то же самое на локальных примерах.
 
-```bash
-make test && make lint
-python -m compileall -q src tests
-```
-
-CI запускает эти проверки на локальных примерах данных и не обращается к рынку.
-
-## Автор
-
-Сергей Ласточкин · Telegram [@metaanswer](https://t.me/metaanswer) ·
-[другие проекты](https://github.com/sergey-lastochkin)
+Сергей Ласточкин · [t.me/metaanswer](https://t.me/metaanswer) · [другие проекты](https://github.com/sergey-lastochkin)
